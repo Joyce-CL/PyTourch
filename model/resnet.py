@@ -34,7 +34,7 @@ class ResNet(nn.Module):
         self.conv = nn.Conv2d(3, 64, kernel_size=7, stride=2)
         # 64 input 64 output
         self.bn = nn.BatchNorm2d(64)
-        self.max_pooling = nn.MaxPool2d(kernel_size=7, stride=2)
+        self.max_pooling = nn.MaxPool2d(kernel_size=3, stride=2)
         self.ResBlock1 = ResBlock(input_channel=64, output_channel=64, stride=1)
         self.ResBlock2 = ResBlock(input_channel=64, output_channel=128, stride=2)
         self.ResBlock3 = ResBlock(input_channel=128, output_channel=256, stride=2)
@@ -52,14 +52,7 @@ class ResNet(nn.Module):
         x = self.ResBlock4(x)
 
         x = self.GlobalAvgPool(x)
-        x = x.view(-1, self.num_flat_features(x))
+        x = x.view(x.size(0), -1) # change output into (512, 1)
         x = self.fc(x)
 
-    # 不太确定
-    def num_flat_features(self, x):
-        # x = [B, H, M, N]
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
+        return x
