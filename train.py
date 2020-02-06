@@ -11,7 +11,7 @@ from model.resnet import ResNet
 
 learning_rate = 0.0001
 patience = 50
-batch_size = 75
+batch_size = 1
 weight_decay = 0.01
 # betas
 
@@ -20,7 +20,7 @@ train_data = get_train_dataset()
 val_data = get_validation_dataset()
 pos_weight = train_data.pos_weight()
 train_dl = t.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
-val_dl = t.utils.data.DataLoader(val_data, batch_size=25, shuffle=True)
+val_dl = t.utils.data.DataLoader(val_data, batch_size=1, shuffle=True)
 # set up your model
 net = ResNet()
 # set up loss (you can find preimplemented loss functions in t.nn) use the pos_weight parameter to ease convergence
@@ -30,7 +30,7 @@ criterion = t.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 # adam
 optimizer = t.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=weight_decay)
 early_stop = EarlyStoppingCallback(patience=patience)
-trainer = Trainer(net, criterion, optimizer, train_dl, val_dl, cuda=True, early_stopping_cb=early_stop)
+trainer = Trainer(net, criterion, optimizer, train_dl, val_dl, cuda=False, early_stopping_cb=early_stop)
 
 # go, go, go... call fit on trainer
 res = trainer.fit()

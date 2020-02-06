@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import torchvision as tv
 
-
+# rgb
 train_mean = [0.59685254, 0.59685254, 0.59685254]
 train_std = [0.16043035, 0.16043035, 0.16043035]
 
@@ -47,8 +47,7 @@ class ChallengeDataset(Dataset):
         # self.label = np.array(temp[2:])
         # ./ 当前文件夹
         image = gray2rgb(imread('./' + self.img_name[idx]))
-        if self.transform:
-            image = self.transform(image)
+        image = self.transform(image)
         label = torch.from_numpy(self.label[idx])
         label = label.float()
         sample = (image, label)
@@ -58,12 +57,12 @@ class ChallengeDataset(Dataset):
         return len(self.img_name)
 
     def pos_weight(self):
-        crack = self.label_all_set.sum(dim=0)
-        inactive = self.label_all_set.sum(dim=1)
-        nBatch = len(self.label_all_set)
-        crack_weight = (nBatch - crack)/(crack + 1e-5)
-        inactive_weight = (nBatch - inactive)/(inactive + 1e-5)
-        pos_weight = torch.from_numpy([crack_weight, inactive_weight])
+        crack = self.label_all_set[:, 0]
+        inactive = self.label_all_set[:, 1]
+        crack_weight = np.sum(1 - crack) / np.sum(crack)
+        inactive_weight = np.sum(1 - inactive) / np.sum(inactive)
+        # return a tensor of weights
+        pos_weight = torch.tensor([crack_weight, inactive_weight])
         return pos_weight
 
 
@@ -76,15 +75,16 @@ def get_train_dataset():
     # the data for training and the remaining 25% for testing
     transform = tv.transforms.Compose([tv.transforms.ToPILImage(),
                                        tv.transforms.ToTensor(),
-                                       tv.transforms.Normalize(train_mean, train_std)])
+                                       tv.transforms.Normalize(mean=train_mean, std=train_std)])
     train_data_set = ChallengeDataset('train', csv_file, split_rate, transform)
     return train_data_set
+
 
 # this needs to return a dataset *without* data augmentation!
 def get_validation_dataset():
     transform = tv.transforms.Compose([tv.transforms.ToPILImage(),
                                        tv.transforms.ToTensor(),
-                                       tv.transforms.Normalize(train_mean, train_std)])
+                                       tv.transforms.Normalize(mean=train_mean, std=train_std)])
     validation_data_set = ChallengeDataset('val', csv_file, split_rate, transform)
     return validation_data_set
 

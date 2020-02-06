@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -11,7 +10,7 @@ class ResBlock(nn.Module):
         # conv3 with stride, kernel_size 1, different in and output channel
         self.conv1 = nn.Conv2d(input_channel, output_channel, kernel_size=3, stride=stride, padding=1)
         self.conv2 = nn.Conv2d(output_channel, output_channel, kernel_size=3, padding=1)
-        self.conv3 = nn.Conv2d(input_channel, output_channel, kernel_size=3, stride=stride)
+        self.conv3 = nn.Conv2d(input_channel, output_channel, kernel_size=1, stride=stride)
 
         self.bn1 = nn.BatchNorm2d(output_channel)
         self.bn2 = nn.BatchNorm2d(output_channel)
@@ -39,12 +38,13 @@ class ResNet(nn.Module):
         self.ResBlock2 = ResBlock(input_channel=64, output_channel=128, stride=2)
         self.ResBlock3 = ResBlock(input_channel=128, output_channel=256, stride=2)
         self.ResBlock4 = ResBlock(input_channel=256, output_channel=512, stride=2)
-        self.GlobalAvgPool = nn.AdaptiveAvgPool2d(1)
+        # make output_size as (1, 1) as the global average
+        self.GlobalAvgPool = nn.AdaptiveAvgPool2d((1, 1))
         # input channel is the output of last ResBlock, output channel is the feature number
         self.fc = nn.Linear(512, 2)
 
     def forward(self, x):
-        x = self.max_pool2d(F.relu(self.bn(self.conv1(x))))
+        x = self.max_pooling(F.relu(self.bn(self.conv(x))))
 
         x = self.ResBlock1(x)
         x = self.ResBlock2(x)
@@ -52,7 +52,7 @@ class ResNet(nn.Module):
         x = self.ResBlock4(x)
 
         x = self.GlobalAvgPool(x)
-        x = x.view(x.size(0), -1) # change output into (512, 1)
+        x = x.view(x.size(0), -1)  # change output into (512, 1)
         x = self.fc(x)
 
         return x

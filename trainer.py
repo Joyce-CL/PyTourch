@@ -82,7 +82,7 @@ class Trainer:
         self.mode = 'train'
         epoch_loss = 0
         # iterate through the training set
-        for img, label in self._train_dl:
+        for img, label in tqdm(self._train_dl):
             # transfer the batch to "cuda()" -> the gpu if a gpu is given
             # perform a training step
             if self._cuda:
@@ -96,7 +96,7 @@ class Trainer:
     
     def val_test(self):
         # set eval mode
-        self.mode = 'eval'
+        self.mode = 'val'
         label_list = []
         pred_label_list = []
         epoch_loss = 0
@@ -105,7 +105,7 @@ class Trainer:
         # transfer the batch to the gpu if given
         # perform a validation step
         with t.no_grad():
-            for img, label in self._train_dl:
+            for img, label in tqdm(self._val_test_dl):
                 if self._cuda:
                     img = img.cuda()
                     label = label.cuda()
