@@ -72,7 +72,8 @@ class Trainer:
         zero_tensor = t.tensor([0, 0])
         if self._cuda:
             zero_tensor = t.tensor([0,0]).cuda()
-        predict_output =  t.ge(output, zero_tensor).float()
+        # if output > 0, predict_output will be 1, else will be 0
+        predict_output = t.ge(output, zero_tensor).float()
         # return the loss and the predictions
         return loss, predict_output
         
